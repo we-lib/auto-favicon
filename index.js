@@ -4,11 +4,46 @@
  * - TODO: supports ES-Module ?
  */
 ;(function (exports) {
+  var hasWindow = typeof window === 'object'
+  var hasNavigator = typeof navigator === 'object'
+  var hasDocument = typeof document === 'object'
+
+  // How to detect if the OS is in dark mode in browsers?
+  // https://stackoverflow.com/questions/50840168/how-to-detect-if-the-os-is-in-dark-mode-in-browsers
+  // https://caniuse.com/?search=prefers-color-scheme
+  // https://caniuse.com/?search=matchMedia
+  var supportsMatchMedia = hasWindow && typeof window.matchMedia === 'function'
+  var isDarkMode = false
+  var darkModeChangeHandlers = []
+  if (supportsMatchMedia) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      isDarkMode = true
+    }
+  }
+  function darkModeChangeListener(e) {
+    isDarkMode = !!e.matches
+    darkModeChangeHandlers.forEach(function (handler) {
+      handler()
+    })
+  }
+  function startListenDarkMode() {
+    if (supportsMatchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', darkModeChangeListener)
+    }
+  }
+  function stopListenDarkMode() {
+    if (supportsMatchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', darkModeChangeListener)
+    }
+  }
+
   // How to detect emoji using javascript
   // https://stackoverflow.com/questions/18862256/how-to-detect-emoji-using-javascript
-  // +modification title-favicon bugfix: recognize emoji `✋🏻`
-  var emojiPrefixRegex =
-    /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])+/
+  // +modification title-favicon bugfix: recognize emoji `✋🏻` `💁‍♀️` `👨‍👩‍👧‍👦` `🏳️‍🌈`
+  var emojiCellRegex = /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])+/
+  var emojiRegex = new RegExp(emojiCellRegex.toString().replace(/^\/(.+)\/$/, '(?:[\\u200d\\ufe0f]*$1)+[\\ufe0f]*'))
+  var emojiPrefixRegex = new RegExp(emojiRegex.toString().replace(/^\/(.+)\/$/, '^$1'))
+  var anyPrefixRegex = new RegExp(emojiPrefixRegex.toString().replace(/^\/\^(.+)\/$/, '^(?:$1|.)'))
 
   // Use emoji as favicon in websites
   // https://stackoverflow.com/questions/59431371/use-emoji-as-favicon-in-websites
@@ -23,12 +58,13 @@
       ctx.font = isEmoji ? '28px serif' : '32px serif'
       ctx.fillStyle = isDarkMode ? 'orange' : '#336699' // for text color
       ctx.textAlign = 'center'
-      ctx.fillText(s, 16, 24)
+      // ctx.fillText(s, 16, 24)
+      ctx.fillText(s, 16, 27)
       var dataUrl = canvas.toDataURL()
 
       var parent = document.querySelector('head') || document.documentElement
       var rels = ['icon']
-      rels.forEach(key => {
+      rels.forEach(function (key) {
         var link = document.querySelector('link[rel=' + key + ']')
         if (link) {
           link.setAttribute('href', dataUrl)
@@ -48,13 +84,12 @@
       console.error('setFavicon', err)
     }
   }
-
-  function getLastFavicon() {
-    return lastFavicon
-  }
+  darkModeChangeHandlers.push(function () {
+    if (lastFavicon) setFavicon(lastFavicon)
+  })
 
   function detectShouldApply(userAgent) {
-    userAgent = userAgent || navigator.userAgent
+    userAgent = userAgent || hasNavigator && navigator.userAgent
 
     var isMobile = /Mobile[\/ ]|Android|iPad/.test(userAgent) // confidence: high
     // var isAndroid = /Android/.test(userAgent) // confidence: high
@@ -66,16 +101,35 @@
 
     return !isWechat && !isSafari && (isMobile ? isHuaweiBr || isQQ : true)
   }
+  var shouldApplyFavicon = detectShouldApply()
 
-  exports.libTextFavicon = {
-    emojiPrefixRegex,
-    setFavicon: setFavicon,
-    getLastFavicon: getLastFavicon,
-    detectShouldApply: detectShouldApply
+  function autoFavicon(mainTitle, dontSetDocTitle, emojiOnly) {
+    var regex = emojiOnly ? emojiPrefixRegex : anyPrefixRegex
+    mainTitle = (mainTitle || hasDocument && document.title || '').trim()
+    var navTitle = mainTitle
+    if (!shouldApplyFavicon) return navTitle
+
+    var matched = mainTitle.match(regex)
+    if (matched) {
+      var prefix = matched[0]
+      var success = setFavicon(prefix)
+      if (success && emojiPrefixRegex.test(mainTitle)) {
+        // navTitle = mainTitle.replace(regex, '').trim() // replace only if emoji
+        navTitle = mainTitle.replace(prefix, '').trim() // replace only if emoji
+      }
+    }
+    if (!dontSetDocTitle) document.title = navTitle
+    return navTitle
   }
+
+  exports.autoFavicon = autoFavicon
+  exports.setFavicon = setFavicon
+  exports.detectShouldApply = detectShouldApply
+  exports.startListenDarkMode = startListenDarkMode
+  exports.stopListenDarkMode = stopListenDarkMode
 })(
   typeof window === 'object'
-    ? window
+    ? (window.libAutoFavicon = {})
     : typeof module === 'object'
     ? module.exports
     : {}

@@ -1,11 +1,11 @@
 const { testCases } = require('./detect.test-case')
-const { libTextFavicon } = require('.')
+const libAutoFavicon = require('.')
 const { expect } = require('chai')
 
 exports.test = async () => {
-  expect(libTextFavicon).to.be.ok
+  expect(libAutoFavicon).to.be.ok
 
-  let { detectShouldApply } = libTextFavicon
+  let { detectShouldApply } = libAutoFavicon
   expect(detectShouldApply).to.be.a('function')
 
   testCases.forEach(item => {

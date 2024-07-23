@@ -1,7 +1,7 @@
 {
-  "name": "text-favicon",
+  "name": "auto-favicon",
   "version": "0.0.0",
-  "description": "",
+  "description": "Sets favicon for you based on title, with emoji support.",
   "license": "ISC",
   "main": "index.js",
   "scripts": {
