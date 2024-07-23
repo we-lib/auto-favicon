@@ -15,25 +15,38 @@
   var supportsMatchMedia = hasWindow && typeof window.matchMedia === 'function'
   var isDarkMode = false
   var darkModeChangeHandlers = []
+  var mediaWatcher
   if (supportsMatchMedia) {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      isDarkMode = true
-    }
+    mediaWatcher = window.matchMedia('(prefers-color-scheme: dark)')
+    if (mediaWatcher.matches) isDarkMode = true
   }
   function darkModeChangeListener(e) {
-    isDarkMode = !!e.matches
+    isDarkMode = Boolean((e || mediaWatcher).matches)
     darkModeChangeHandlers.forEach(function (handler) {
       handler()
     })
   }
+  // How to add removeEventListener in window.matchMedia?
+  // https://stackoverflow.com/questions/65360739/how-to-add-removeeventlistener-in-window-matchmedia
+  // What's the Substitute for the Deprecated matchMedia() .removeListener() Method?
+  // https://www.designcise.com/web/tutorial/what-is-the-substitute-for-the-deprecated-matchmedia-removelistener-method
   function startListenDarkMode() {
     if (supportsMatchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', darkModeChangeListener)
+      darkModeChangeListener()
+      if (mediaWatcher.addEventListener) {
+        mediaWatcher.addEventListener('change', darkModeChangeListener)
+      } else {
+        mediaWatcher.addListener(darkModeChangeListener)
+      }
     }
   }
   function stopListenDarkMode() {
     if (supportsMatchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', darkModeChangeListener)
+      if (mediaWatcher.removeEventListener) {
+        mediaWatcher.removeEventListener('change', darkModeChangeListener)
+      } else {
+        mediaWatcher.removeListener(darkModeChangeListener)
+      }
     }
   }
 

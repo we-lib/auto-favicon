@@ -13,7 +13,7 @@
 ```html
 <title>&nbsp;</title>
 <!-- As UMD module via CDN -->
-<script src="https://unpkg.com/auto-favicon@0.0.0/index.js"></script>
+<script src="https://unpkg.com/auto-favicon@0.0.2/index.js"></script>
 <script>
 // 👉🏻 https://blog.fritx.me/?projects/react-drag-sizing/
 libAutoFavicon.autoFavicon('✋🏻 react-drag-sizing: 拖拽缩放组件')
