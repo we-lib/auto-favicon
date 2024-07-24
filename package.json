@@ -1,10 +1,13 @@
 {
   "name": "auto-favicon",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Sets favicon for you based on title, with emoji support.",
   "homepage": "https://github.com/we-lib/auto-favicon",
   "license": "MIT",
   "main": "index.js",
+  "files": [
+    "index.js"
+  ],
   "scripts": {
     "coverage": "c8 xv",
     "test": "sort-package-json && xv"

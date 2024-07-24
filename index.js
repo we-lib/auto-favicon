@@ -116,12 +116,12 @@
   }
   var shouldApplyFavicon = detectShouldApply()
 
-  function autoFavicon(mainTitle, dontSetDocTitle, emojiOnly) {
-    var regex = emojiOnly ? emojiPrefixRegex : anyPrefixRegex
+  function autoFavicon(mainTitle, setDocTitle, emojiOnly) {
     mainTitle = (mainTitle || hasDocument && document.title || '').trim()
     var navTitle = mainTitle
     if (!shouldApplyFavicon) return navTitle
 
+    var regex = emojiOnly ? emojiPrefixRegex : anyPrefixRegex
     var matched = mainTitle.match(regex)
     if (matched) {
       var prefix = matched[0]
@@ -131,7 +131,7 @@
         navTitle = mainTitle.replace(prefix, '').trim() // replace only if emoji
       }
     }
-    if (!dontSetDocTitle) document.title = navTitle
+    if (setDocTitle == null || setDocTitle) document.title = navTitle
     return navTitle
   }
 

@@ -13,7 +13,7 @@
 ```html
 <title>&nbsp;</title>
 <!-- As UMD module via CDN -->
-<script src="https://unpkg.com/auto-favicon@0.0.2/index.js"></script>
+<script src="https://unpkg.com/auto-favicon@0.0.3/index.js"></script>
 <script>
 // 👉🏻 https://blog.fritx.me/?projects/react-drag-sizing/
 libAutoFavicon.autoFavicon('✋🏻 react-drag-sizing: 拖拽缩放组件')
@@ -45,8 +45,8 @@ libAutoFavicon.stopListenDarkMode()
 
 ## API & Options
 
-- autoFavicon(title=document.title, dontSetDocTitle=false, emojiOnly=false): string
-- setFavicon(text: string)
+- autoFavicon(title=document.title, setDocTitle=true, emojiOnly=false): string
+- setFavicon(text: string): boolean
 - detectShouldApply(userAgent=navigator.userAgent): boolean
 - startListenDarkMode()
 - stopListenDarkMode()
